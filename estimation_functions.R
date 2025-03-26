@@ -2,6 +2,8 @@
 #### Create lag matrix of X ####
 
 library(midasr)
+library(rlist)
+library(matrixStats)
 
 # input an object of class ts
 
@@ -70,6 +72,24 @@ fit_Minla <- function(xdata,
                     X_matrix = X_matrix,
                     rgen = rgen,
                     rm.row = rm.row))
+  
+}
+
+
+predict_midas <- function(model,
+                          data){
+  
+  compile_preds <- lapply(1:10, function(x){
+    temp <- inla.posterior.sample(n = 1, res_Beta)
+    return(temp[[1]]$latent[1:nrow(data)])
+  })
+  compile_preds <- list.cbind(compile_preds)
+  computed_preds <- list(mean = rowMeans(compile_preds),
+                         sd = apply(compile_preds, 1, sd),
+                         q2.5 = rowQuantiles(compile_preds, probs = 0.025),
+                         q97.5 = rowQuantiles(compile_preds, probs = 0.975))
+  
+  return(out = list(preds = computed_preds))
   
 }
 
