@@ -20,8 +20,29 @@ create_lag_Xmatrix <- function(tsdata,
 
 
 
-fit_Minla <- function(){
+fit_Minla <- function(xdata,
+                      ydata,
+                      constraint,
+                      K,
+                      m){
   
+  X_matrix <- create_lag_Xmatrix(tsdata = xdata,
+                                 lags = K,
+                                 frequency = m)
   
+  temp_data <- as.data.frame(X_matrix)
+  temp_data$y <- as.vector(ydata)
+
+  if(constraint == "beta"){
+    rgen = inla.rgeneric.define(model = rgeneric.Beta.midas,
+                                x = temp_data)
+  }else if(constraint == "almon"){
+    
+  }
+  
+  return(out = list(X_matrix = X_matrix,
+                    rgen = rgen))
   
 }
+
+                            
