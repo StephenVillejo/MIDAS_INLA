@@ -167,10 +167,12 @@ rgeneric.Almon.midas = function(cmd = c("graph", "Q", "mu", "initial", "log.norm
   }
   log.prior = function() {
     par = interpret.theta()
-    val = (dnorm(theta[1L], mean=0, sd=1, log=TRUE) +
-             dnorm(theta[2L], mean=0, sd=1, log=TRUE) +
-             dnorm(theta[3L], mean=0, sd=1, log=TRUE))
-    return(val)
+    n.params <- length(par)
+    val <- 0
+    for(i in 1:n.params){
+      temp <- dnorm(par[[i]], mean=0, sd=1, log=TRUE)
+      val <- val + temp
+    }
   }
   initial = function() { 
     return(rep(1, 3))
