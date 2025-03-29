@@ -74,14 +74,19 @@ rgeneric.Beta.midas = function(cmd = c("graph", "Q", "mu", "initial", "log.norm.
   log.norm.const = function() { 
     return(numeric(0))
   }
+  # log.prior = function() {
+  #   par = interpret.theta()
+  #   n.params <- length(par)
+  #   val <- 0
+  #   for(i in 1:n.params){
+  #     temp <- dnorm(par[[i]], mean=0, sd=1, log=TRUE)
+  #     val <- val + temp
+  #   }
+  # }
   log.prior = function() {
-    par = interpret.theta()
-    n.params <- length(par)
-    val <- 0
-    for(i in 1:n.params){
-      temp <- dnorm(par[[i]], mean=0, sd=1, log=TRUE)
-      val <- val + temp
-    }
+    val = (dnorm(theta[1L], mean=0, sd=1, log=TRUE) +
+             dnorm(theta[2L], mean=0, sd=1, log=TRUE))
+    return(val)
   }
   initial = function() { 
     return(rep(1, 2))
@@ -171,13 +176,10 @@ rgeneric.Beta2.midas = function(cmd = c("graph", "Q", "mu", "initial", "log.norm
     return(numeric(0))
   }
   log.prior = function() {
-    par = interpret.theta()
-    n.params <- length(par)
-    val <- 0
-    for(i in 1:n.params){
-      temp <- dnorm(par[[i]], mean=0, sd=1, log=TRUE)
-      val <- val + temp
-    }
+    val = (dnorm(theta[1L], mean=0, sd=1, log=TRUE) +
+             dnorm(theta[2L], mean=0, sd=1, log=TRUE) +
+             dnorm(theta[3L], mean=0, sd=1, log=TRUE))
+    return(val)
   }
   initial = function() { 
     return(rep(1, 3))
@@ -267,14 +269,20 @@ rgeneric.Almon2.midas = function(cmd = c("graph", "Q", "mu", "initial", "log.nor
   log.norm.const = function() { 
     return(numeric(0))
   }
+  # log.prior = function() {
+  #   par = interpret.theta()
+  #   n.params <- length(par)
+  #   val <- 0
+  #   for(i in 1:n.params){
+  #     temp <- dnorm(par[[i]], mean=0, sd=1, log=TRUE)
+  #     val <- val + temp
+  #   }
+  # }
   log.prior = function() {
-    par = interpret.theta()
-    n.params <- length(par)
-    val <- 0
-    for(i in 1:n.params){
-      temp <- dnorm(par[[i]], mean=0, sd=1, log=TRUE)
-      val <- val + temp
-    }
+    val = (dnorm(theta[1L], mean=0, sd=1, log=TRUE) +
+             dnorm(theta[2L], mean=0, sd=1, log=TRUE) +
+             dnorm(theta[3L], mean=0, sd=1, log=TRUE))
+    return(val)
   }
   initial = function() { 
     return(rep(1, 3))
@@ -365,14 +373,21 @@ rgeneric.Almon3.midas = function(cmd = c("graph", "Q", "mu", "initial", "log.nor
   log.norm.const = function() { 
     return(numeric(0))
   }
+  # log.prior = function() {
+  #   par = interpret.theta()
+  #   n.params <- length(par)
+  #   val <- 0
+  #   for(i in 1:n.params){
+  #     temp <- dnorm(par[[i]], mean=0, sd=1, log=TRUE)
+  #     val <- val + temp
+  #   }
+  # }
   log.prior = function() {
-    par = interpret.theta()
-    n.params <- length(par)
-    val <- 0
-    for(i in 1:n.params){
-      temp <- dnorm(par[[i]], mean=0, sd=1, log=TRUE)
-      val <- val + temp
-    }
+    val = (dnorm(theta[1L], mean=0, sd=1, log=TRUE) +
+             dnorm(theta[2L], mean=0, sd=1, log=TRUE) +
+             dnorm(theta[3L], mean=0, sd=1, log=TRUE) +
+             dnorm(theta[4L], mean=0, sd=1, log=TRUE))
+    return(val)
   }
   initial = function() { 
     return(rep(1, 4))
@@ -460,14 +475,19 @@ rgeneric.Hyperbolic.midas = function(cmd = c("graph", "Q", "mu", "initial", "log
   log.norm.const = function() { 
     return(numeric(0))
   }
+  # log.prior = function() {
+  #   par = interpret.theta()
+  #   n.params <- length(par)
+  #   val <- 0
+  #   for(i in 1:n.params){
+  #     temp <- dnorm(par[[i]], mean=0, sd=1, log=TRUE)
+  #     val <- val + temp
+  #   }
+  # }
   log.prior = function() {
-    par = interpret.theta()
-    n.params <- length(par)
-    val <- 0
-    for(i in 1:n.params){
-      temp <- dnorm(par[[i]], mean=0, sd=1, log=TRUE)
-      val <- val + temp
-    }
+    val = (dnorm(theta[1L], mean=0, sd=1, log=TRUE) +
+             dnorm(theta[2L], mean=0, sd=1, log=TRUE))
+    return(val)
   }
   initial = function() { 
     return(rep(1, 2))
