@@ -83,7 +83,9 @@ rgeneric.Beta.midas = function(cmd = c("graph", "Q", "mu", "initial", "log.norm.
     }
   }
   initial = function() { 
-    return(rep(1, 2))
+    par = interpret.theta()
+    n.params <- length(par)
+    return(rep(1, n.params+1))
   }
   quit = function() { 
     return(invisible())
@@ -178,7 +180,9 @@ rgeneric.Almon.midas = function(cmd = c("graph", "Q", "mu", "initial", "log.norm
     }
   }
   initial = function() { 
-    return(rep(1, 3))
+    par = interpret.theta()
+    n.params <- length(par)
+    return(rep(1, n.params+1))
   }
   quit = function() { 
     return(invisible())
@@ -272,7 +276,9 @@ rgeneric.Hyperbolic.midas = function(cmd = c("graph", "Q", "mu", "initial", "log
     }
   }
   initial = function() { 
-    return(rep(1, 2))
+    par = interpret.theta()
+    n.params <- length(par)
+    return(rep(1, n.params+1))
   }
   quit = function() { 
     return(invisible())
