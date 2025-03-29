@@ -47,6 +47,9 @@ fit_Minla <- function(xdata,
   if(constraint == "beta"){
     rgen = inla.rgeneric.define(model = rgeneric.Beta.midas,
                                 x = temp_data)
+  }else if(constraint == "beta2"){
+    rgen = inla.rgeneric.define(model = rgeneric.Beta2.midas,
+                                x = temp_data)
   }else if(constraint == "almon2"){
     rgen = inla.rgeneric.define(model = rgeneric.Almon2.midas,
                                 x = temp_data)
