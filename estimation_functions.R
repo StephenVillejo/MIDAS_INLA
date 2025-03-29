@@ -47,8 +47,11 @@ fit_Minla <- function(xdata,
   if(constraint == "beta"){
     rgen = inla.rgeneric.define(model = rgeneric.Beta.midas,
                                 x = temp_data)
-  }else if(constraint == "almon"){
-    rgen = inla.rgeneric.define(model = rgeneric.Almon.midas,
+  }else if(constraint == "almon2"){
+    rgen = inla.rgeneric.define(model = rgeneric.Almon2.midas,
+                                x = temp_data)
+  }else if(constraint == "almon3"){
+    rgen = inla.rgeneric.define(model = rgeneric.Almon3.midas,
                                 x = temp_data)
   }else if(constraint == "hyperbolic"){
     rgen = inla.rgeneric.define(model = rgeneric.Hyperbolic.midas,
