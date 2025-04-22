@@ -1,0 +1,174 @@
+
+source("rgeneric_functions.R")
+source("estimation_functions.R")
+
+library(midasr)
+library(ggplot2)
+library(INLA)
+
+
+n <- 500
+beta0 = 5
+beta1 = 3
+sigma_e = 0.5
+
+gamma1 <- 0.002
+gamma2 <- -0.005
+lag_k <- 40
+xi <- c()
+for(lag in 0:lag_k){
+  temp <- exp( gamma1*(lag^1) + gamma2*(lag^2))
+  xi <- c(xi, temp)
+}
+weights <- xi/sum(xi)
+plot(weights, type = "l")
+
+x <- rnorm(4*n)
+
+y <- beta0 + 0.05*c(1:n) + beta1*mls(x,0:lag_k,4)%*%weights + rnorm(n, sd = sigma_e)
+y <- beta0 + beta1*mls(x,0:lag_k,4)%*%weights + rnorm(n, sd = sigma_e)
+plot(y, type = "l")
+plot(x, typ = "l")
+
+y_ts <- ts(y, frequency = 1)
+x_ts <- ts(x, frequency = 4)
+autoplot(x_ts) + theme_bw()
+autoplot(y_ts) + theme_bw()
+
+
+Midas_objects <- fit_Minla(xdata = x_ts,
+                           ydata = y_ts,
+                           constraint = "almon2",
+                           K = 0:40,
+                           m = 4,
+                           lagY = 0) 
+head(Midas_objects$data)
+head(Midas_objects$X_matrix)
+which(complete.cases(Midas_objects$X_matrix) == FALSE)
+
+res = inla(y ~ 1 + #f(trend, model = "linear") + 
+             f(idx, model = Midas_objects$rgen, n = nrow(Midas_objects$data)),
+           data = data.frame(y = Midas_objects$data$y, 
+                             trend = 1:nrow(Midas_objects$data),
+                             idx = 1:nrow(Midas_objects$data)),
+           verbose = TRUE,
+           control.family = list(hyper = list(prec = list(prior = "pc.prec", param = c(sigma_e, 0.5)))),
+           control.compute=list(config = TRUE))
+
+summary(res)
+
+
+pred_data <- Midas_objects$data
+pred_data$trend <- 1:nrow(Midas_objects$data)
+
+pred_res <- predict_midas(model = res,
+                          data = pred_data)
+
+# observed versus predicted values (diff log scale)
+
+both_ts <- ts(data.frame(observed = as.vector(Midas_objects$data$y),
+                         predicted = pred_res$preds$mean),
+              start = c(1985, 1), frequency = 4)
+autoplot(both_ts) +
+  theme_bw() +
+  scale_colour_manual(
+    values = c("blue","red")
+  ) +
+  ylab("y") +
+  theme(axis.text=element_text(size=16),
+        axis.title=element_text(size=16,face="bold"),
+        legend.position = "right",
+        legend.text=element_text(size=20, face = "bold"),
+        legend.title=element_blank())
+
+
+
+png("/Users/stephenjunvillejo/Downloads/ParamEstimates_expoAlmon.png", width=20, height=10, units = 'cm', res = 300)
+par(mfrow=c(1,3))
+
+plot(inla.smarginal(res$marginals.fixed[["(Intercept)"]]),
+     type="l", lwd=3, col="red", xlab=expression(beta[0]), ylab="",
+     cex.lab = 1.5)
+abline(v = beta0, col = 'blue', lty=1, lwd = 2)
+abline(v = quantile(inla.rmarginal(200, res$marginals.fixed$`(Intercept)`), prob = 0.025), lty = 2)
+abline(v = quantile(inla.rmarginal(200, res$marginals.fixed$`(Intercept)`), prob = 0.975), lty = 2)
+
+plot(inla.smarginal(res$marginals.hyperpar[['Theta1 for idx']]),
+     type="l", lwd=3, col="red", xlab=expression(beta[1]), ylab="",
+     cex.lab = 1.5)
+abline(v = beta1, col = 'blue', lty = 1, lwd = 2)
+abline(v = quantile(inla.rmarginal(200, res$marginals.hyperpar$`Theta1 for idx`), prob = 0.025), lty = 2)
+abline(v = quantile(inla.rmarginal(200, res$marginals.hyperpar$`Theta1 for idx`), prob = 0.975), lty = 2)
+
+plot(inla.smarginal(res$marginals.hyperpar[['Precision for the Gaussian observations']]),
+     type="l", lwd=3, col="red", xlab=expression(1/sigma[epsilon]^2), ylab="",
+     cex.lab = 1.5)
+abline(v = 1/(sigma_e^2), col = 'blue', lty=1, lwd = 2)
+abline(v = quantile(inla.rmarginal(200, res$marginals.hyperpar$`Precision for the Gaussian observations`), prob = 0.025), lty = 2)
+abline(v = quantile(inla.rmarginal(200, res$marginals.hyperpar$`Precision for the Gaussian observations`), prob = 0.975), lty = 2)
+
+dev.off()
+
+
+
+plot(inla.smarginal(res$marginals.hyperpar[["Theta2 for idx"]]),
+     type="l", lwd=3, col="red", xlab=expression(kappa[1]), ylab="")
+abline(v = asin(gamma1/.01), col = 'blue', lty=1, lwd = 2)
+abline(v = quantile(inla.rmarginal(200, res$marginals.hyperpar[["Theta2 for idx"]]), prob = 0.025), lty = 2)
+abline(v = quantile(inla.rmarginal(200, res$marginals.hyperpar[["Theta2 for idx"]]), prob = 0.975), lty = 2)
+
+plot(inla.smarginal(res$marginals.hyperpar[["Theta3 for idx"]]),
+     type="l", lwd=3, col="red", xlab=expression(kappa[2]), ylab="")
+abline(v = asin(gamma2/.01), col = 'blue', lty=1, lwd = 2)
+abline(v = quantile(inla.rmarginal(200, res$marginals.hyperpar[["Theta3 for idx"]]), prob = 0.025), lty = 2)
+abline(v = quantile(inla.rmarginal(200, res$marginals.hyperpar[["Theta3 for idx"]]), prob = 0.975), lty = 2)
+
+
+
+
+theta1_samples <- inla.rmarginal(200, res$marginals.hyperpar$`Theta2 for idx`)
+theta2_samples <- inla.rmarginal(200, res$marginals.hyperpar$`Theta3 for idx`)
+gamma1_samples <- 0.01*sin(theta1_samples)
+gamma2_samples <- 0.01*sin(theta2_samples)
+compile_sum <- vector(length = 200)
+for(lag in 0:lag_k){
+  temp <- exp( gamma1_samples*(lag^1) + gamma2_samples*(lag^2))
+  assign(paste0("psi_sample_",lag),temp)
+  compile_sum <- compile_sum + temp
+}
+for(lag in 0:lag_k){
+  temp <- get(paste0("psi_sample_", lag))
+  assign(paste0("w",lag),temp/compile_sum)
+}
+compile_w_list <- vector("list", length = lag_k + 1)
+for(i in 0:lag_k){
+  temp <- get(paste0("w",i))
+  compile_w_list[[i+1]] <- temp
+}
+mean <- lapply(1:(lag_k+1), function(x) mean(compile_w_list[[x]]))
+q2.5 <- lapply(1:(lag_k+1), function(x) quantile(compile_w_list[[x]],probs=0.025))
+q97.5 <- lapply(1:(lag_k+1), function(x) quantile(compile_w_list[[x]],probs=0.975))
+
+weights <- weights[(lag_k+1):1]
+weights_ests_df <- data.frame(true = weights,
+                              mean = unlist(mean),
+                              q2.5 = unlist(q2.5),
+                              q97.5 = unlist(q97.5),
+                              lag = 0:lag_k)
+
+weights_ests_df$lag <- factor(weights_ests_df$lag, levels=unique(weights_ests_df$lag))
+ggplot(weights_ests_df, aes(x=lag, y=mean)) + 
+  #geom_line() +
+  geom_point(aes(col="posterior mean")) +
+  #geom_point(color="red",aes(color = "posterior mean")) +
+  geom_errorbar(aes(ymin=q2.5, ymax=q97.5), width=.2,
+                position=position_dodge(0.05), col = "black") + 
+  geom_point(aes(x=lag, y=true, color = "true value")) + 
+  #geom_point(aes(x=lag, y=true, color = "truth"), color = "blue") +
+  scale_color_manual(name='',
+                     breaks=c('posterior mean', 'true value'),
+                     values=c('posterior mean'='red', 'true value'='blue')) +
+  theme_bw() + 
+  ylab("")
+
+
