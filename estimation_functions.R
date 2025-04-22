@@ -89,7 +89,7 @@ predict_midas <- function(model,
                           data){
   
   compile_preds <- lapply(1:10, function(x){
-    temp <- inla.posterior.sample(n = 1, res_Beta)
+    temp <- inla.posterior.sample(n = 1, model)
     return(temp[[1]]$latent[1:nrow(data)])
   })
   compile_preds <- list.cbind(compile_preds)
