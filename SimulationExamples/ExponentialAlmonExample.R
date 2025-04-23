@@ -33,11 +33,28 @@ y <- beta0 + beta1*mls(x,0:lag_k,4)%*%weights + rnorm(n, sd = sigma_e)
 plot(y, type = "l")
 plot(x, typ = "l")
 
-y_ts <- ts(y, frequency = 12)
+y_ts <- ts(y, frequency = 1)
 x_ts <- ts(x, frequency = 4)
-autoplot(x_ts) + theme_bw()
-autoplot(y_ts) + theme_bw()
-
+png("/Users/stephenjunvillejo/Downloads/SimHighFrequency_expoAlmon.png", width=17, height=10, units = 'cm', res = 300)
+autoplot(x_ts, color = "brown") + theme_bw() + geom_point(color = "red", size = .4) +
+  theme(axis.text.x=element_text(size=16),
+        axis.title.x=element_text(size=16,face="bold"),
+        axis.text.y=element_blank(),
+        axis.title.y=element_blank(),
+        legend.position = "bottom",
+        legend.text=element_text(size=20, face = "plain"),
+        legend.title=element_blank())
+dev.off()
+png("/Users/stephenjunvillejo/Downloads/SimLowFrequency_expoAlmon.png", width=17, height=10, units = 'cm', res = 300)
+autoplot(y_ts, color = "black") + theme_bw() + geom_point(color = "gray", size = .4) +
+  theme(axis.text.x=element_text(size=16),
+        axis.title.x=element_text(size=16,face="bold"),
+        axis.text.y=element_blank(),
+        axis.title.y=element_blank(),
+        legend.position = "bottom",
+        legend.text=element_text(size=20, face = "plain"),
+        legend.title=element_blank())
+dev.off()
 
 
 #### Model fitting ####
@@ -67,7 +84,8 @@ pred_data <- Midas_objects$data
 pred_res <- predict_midas(model = res,
                           data = pred_data)
 both_ts <- ts(data.frame(observed = as.vector(Midas_objects$data$y),
-                         predicted = pred_res$preds$mean))
+                         predicted = pred_res$preds$mean),
+              start = 11, end = 500)
 
 png("/Users/stephenjunvillejo/Downloads/PredsVsObs_expoAlmon.png", width=25, height=10, units = 'cm', res = 300)
 autoplot(both_ts) +
@@ -86,26 +104,26 @@ dev.off()
 
 #### Plot posterior marginals ####
 
-png("/Users/stephenjunvillejo/Downloads/ParamEstimates_expoAlmon.png", width=20, height=10, units = 'cm', res = 300)
+png("/Users/stephenjunvillejo/Downloads/ParamEstimates_expoAlmon.png", width=25, height=10, units = 'cm', res = 300)
 par(mfrow=c(1,3))
 
 plot(inla.smarginal(res$marginals.fixed[["(Intercept)"]]),
      type="l", lwd=3, col="red", xlab=expression(beta[0]), ylab="",
-     cex.lab = 1.5)
+     cex.lab = 1.9, cex.axis=1.5)
 abline(v = beta0, col = 'blue', lty=1, lwd = 2)
 abline(v = quantile(inla.rmarginal(200, res$marginals.fixed$`(Intercept)`), prob = 0.025), lty = 2)
 abline(v = quantile(inla.rmarginal(200, res$marginals.fixed$`(Intercept)`), prob = 0.975), lty = 2)
 
 plot(inla.smarginal(res$marginals.hyperpar[['Theta1 for idx']]),
      type="l", lwd=3, col="red", xlab=expression(beta[1]), ylab="",
-     cex.lab = 1.5)
+     cex.lab = 1.9, cex.axis=1.5)
 abline(v = beta1, col = 'blue', lty = 1, lwd = 2)
 abline(v = quantile(inla.rmarginal(200, res$marginals.hyperpar$`Theta1 for idx`), prob = 0.025), lty = 2)
 abline(v = quantile(inla.rmarginal(200, res$marginals.hyperpar$`Theta1 for idx`), prob = 0.975), lty = 2)
 
 plot(inla.smarginal(res$marginals.hyperpar[['Precision for the Gaussian observations']]),
      type="l", lwd=3, col="red", xlab=expression(1/sigma[epsilon]^2), ylab="",
-     cex.lab = 1.5)
+     cex.lab = 1.5, cex.axis=1.5)
 abline(v = 1/(sigma_e^2), col = 'blue', lty=1, lwd = 2)
 abline(v = quantile(inla.rmarginal(200, res$marginals.hyperpar$`Precision for the Gaussian observations`), prob = 0.025), lty = 2)
 abline(v = quantile(inla.rmarginal(200, res$marginals.hyperpar$`Precision for the Gaussian observations`), prob = 0.975), lty = 2)
