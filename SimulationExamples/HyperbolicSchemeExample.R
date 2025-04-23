@@ -86,7 +86,7 @@ both_ts <- ts(data.frame(observed = as.vector(Midas_objects$data$y),
                          predicted = pred_res$preds$mean),
               start = 3, end = 598)
 
-png("/Users/stephenjunvillejo/Downloads/PredsVsObs_hyperbolic.png", width=25, height=10, units = 'cm', res = 300)
+png("/Users/stephenjunvillejo/Downloads/PredsVsObs_hyperbolic.png", width=25, height=12, units = 'cm', res = 300)
 autoplot(both_ts) +
   theme_bw() +
   scale_colour_manual(
@@ -104,8 +104,8 @@ dev.off()
 
 #### Plot posterior marginals ####
 
-png("/Users/stephenjunvillejo/Downloads/ParamEstimates_hyperbolic.png", width=25, height=10, units = 'cm', res = 300)
-par(mfrow=c(1,3))
+png("/Users/stephenjunvillejo/Downloads/ParamEstimates_hyperbolic.png", width=30, height=10, units = 'cm', res = 300)
+par(mfrow=c(1,4))
 
 plot(inla.smarginal(res$marginals.fixed[["(Intercept)"]]),
      type="l", lwd=3, col="red", xlab=expression(beta[0]), ylab="",
@@ -120,6 +120,13 @@ plot(inla.smarginal(res$marginals.hyperpar[['Theta1 for idx']]),
 abline(v = beta1, col = 'blue', lty = 1, lwd = 2)
 abline(v = quantile(inla.rmarginal(200, res$marginals.hyperpar$`Theta1 for idx`), prob = 0.025), lty = 2)
 abline(v = quantile(inla.rmarginal(200, res$marginals.hyperpar$`Theta1 for idx`), prob = 0.975), lty = 2)
+
+plot(inla.smarginal(res$marginals.fixed[['trend']]),
+     type="l", lwd=3, col="red", xlab=expression(beta[2]), ylab="",
+     cex.lab = 1.9, cex.axis=1.5)
+abline(v = trend, col = 'blue', lty = 1, lwd = 2)
+abline(v = quantile(inla.rmarginal(200, res$marginals.fixed[['trend']]), prob = 0.025), lty = 2)
+abline(v = quantile(inla.rmarginal(200, res$marginals.fixed[['trend']]), prob = 0.975), lty = 2)
 
 plot(inla.smarginal(res$marginals.hyperpar[['Precision for the Gaussian observations']]),
      type="l", lwd=3, col="red", xlab=expression(1/sigma[epsilon]^2), ylab="",
@@ -164,7 +171,7 @@ weights_ests_df <- data.frame(true = weights,
 weights_ests_df$lag <- factor(weights_ests_df$lag, levels=unique(weights_ests_df$lag))
 
 
-png("/Users/stephenjunvillejo/Downloads/WeightsEstimates_hyperbolic.png", width=28, height=15, units = 'cm', res = 300)
+png("/Users/stephenjunvillejo/Downloads/WeightsEstimates_hyperbolic.png", width=35, height=15, units = 'cm', res = 300)
 ggplot(weights_ests_df, aes(x=lag, y=mean)) + 
   #geom_function(fun = weights_func, xlim = c(1, 40), color = "gray", n = 500) +
   geom_point(aes(col="Posterior mean")) +
