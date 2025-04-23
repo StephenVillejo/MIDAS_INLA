@@ -28,7 +28,6 @@ plot(weights, type = "l")
 
 set.seed(12345)
 x <- rnorm(4*n)
-y <- beta0 + 0.05*c(1:n) + beta1*mls(x,0:lag_k,4)%*%weights + rnorm(n, sd = sigma_e)
 y <- beta0 + beta1*mls(x,0:lag_k,4)%*%weights + rnorm(n, sd = sigma_e)
 plot(y, type = "l")
 plot(x, typ = "l")
