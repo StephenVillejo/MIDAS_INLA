@@ -90,7 +90,8 @@ predict_midas <- function(model,
   
   compile_preds <- lapply(1:10, function(x){
     temp <- inla.posterior.sample(n = 1, model)
-    return(temp[[1]]$latent[1:nrow(data)])
+    prec <- temp[[1]]$hyperpar[which(names(temp[[1]]$hyperpar) == "Precision for the Gaussian observations")]
+    return(temp[[1]]$latent[1:nrow(data)] + rnorm(nrow(data),mean = 0,sd = sqrt(1/prec)))
   })
   compile_preds <- list.cbind(compile_preds)
   computed_preds <- list(mean = rowMeans(compile_preds),
