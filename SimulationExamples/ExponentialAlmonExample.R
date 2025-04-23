@@ -67,7 +67,6 @@ Midas_objects <- fit_Minla(xdata = x_ts,
 
 res = inla(y ~ 1 + f(idx, model = Midas_objects$rgen, n = nrow(Midas_objects$data)),
            data = data.frame(y = Midas_objects$data$y, 
-                             trend = 1:nrow(Midas_objects$data),
                              idx = 1:nrow(Midas_objects$data)),
            verbose = TRUE,
            control.family = list(hyper = list(prec = list(prior = "pc.prec", param = c(sigma_e, 0.5)))),
