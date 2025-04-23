@@ -7,6 +7,9 @@ library(ggplot2)
 library(INLA)
 
 
+
+#### Simulated data ####
+
 n <- 500
 beta0 = 5
 beta1 = 3
@@ -23,14 +26,14 @@ for(lag in 0:lag_k){
 weights <- xi/sum(xi)
 plot(weights, type = "l")
 
+set.seed(12345)
 x <- rnorm(4*n)
-
 y <- beta0 + 0.05*c(1:n) + beta1*mls(x,0:lag_k,4)%*%weights + rnorm(n, sd = sigma_e)
 y <- beta0 + beta1*mls(x,0:lag_k,4)%*%weights + rnorm(n, sd = sigma_e)
 plot(y, type = "l")
 plot(x, typ = "l")
 
-y_ts <- ts(y, frequency = 1)
+y_ts <- ts(y, frequency = 12)
 x_ts <- ts(x, frequency = 4)
 autoplot(x_ts) + theme_bw()
 autoplot(y_ts) + theme_bw()
@@ -46,8 +49,7 @@ head(Midas_objects$data)
 head(Midas_objects$X_matrix)
 which(complete.cases(Midas_objects$X_matrix) == FALSE)
 
-res = inla(y ~ 1 + #f(trend, model = "linear") + 
-             f(idx, model = Midas_objects$rgen, n = nrow(Midas_objects$data)),
+res = inla(y ~ 1 + f(idx, model = Midas_objects$rgen, n = nrow(Midas_objects$data)),
            data = data.frame(y = Midas_objects$data$y, 
                              trend = 1:nrow(Midas_objects$data),
                              idx = 1:nrow(Midas_objects$data)),
@@ -58,17 +60,17 @@ res = inla(y ~ 1 + #f(trend, model = "linear") +
 summary(res)
 
 
-pred_data <- Midas_objects$data
-pred_data$trend <- 1:nrow(Midas_objects$data)
 
-pred_res <- predict_midas(model = res,
-                          data = pred_data)
 
 # observed versus predicted values (diff log scale)
 
+pred_data <- Midas_objects$data
+pred_res <- predict_midas(model = res,
+                          data = pred_data)
 both_ts <- ts(data.frame(observed = as.vector(Midas_objects$data$y),
-                         predicted = pred_res$preds$mean),
-              start = c(1985, 1), frequency = 4)
+                         predicted = pred_res$preds$mean))
+
+png("/Users/stephenjunvillejo/Downloads/PredsVsObs_expoAlmon.png", width=25, height=10, units = 'cm', res = 300)
 autoplot(both_ts) +
   theme_bw() +
   scale_colour_manual(
@@ -77,10 +79,10 @@ autoplot(both_ts) +
   ylab("y") +
   theme(axis.text=element_text(size=16),
         axis.title=element_text(size=16,face="bold"),
-        legend.position = "right",
-        legend.text=element_text(size=20, face = "bold"),
+        legend.position = "bottom",
+        legend.text=element_text(size=20, face = "plain"),
         legend.title=element_blank())
-
+dev.off()
 
 
 png("/Users/stephenjunvillejo/Downloads/ParamEstimates_expoAlmon.png", width=20, height=10, units = 'cm', res = 300)
@@ -111,17 +113,17 @@ dev.off()
 
 
 
-plot(inla.smarginal(res$marginals.hyperpar[["Theta2 for idx"]]),
-     type="l", lwd=3, col="red", xlab=expression(kappa[1]), ylab="")
-abline(v = asin(gamma1/.01), col = 'blue', lty=1, lwd = 2)
-abline(v = quantile(inla.rmarginal(200, res$marginals.hyperpar[["Theta2 for idx"]]), prob = 0.025), lty = 2)
-abline(v = quantile(inla.rmarginal(200, res$marginals.hyperpar[["Theta2 for idx"]]), prob = 0.975), lty = 2)
-
-plot(inla.smarginal(res$marginals.hyperpar[["Theta3 for idx"]]),
-     type="l", lwd=3, col="red", xlab=expression(kappa[2]), ylab="")
-abline(v = asin(gamma2/.01), col = 'blue', lty=1, lwd = 2)
-abline(v = quantile(inla.rmarginal(200, res$marginals.hyperpar[["Theta3 for idx"]]), prob = 0.025), lty = 2)
-abline(v = quantile(inla.rmarginal(200, res$marginals.hyperpar[["Theta3 for idx"]]), prob = 0.975), lty = 2)
+# plot(inla.smarginal(res$marginals.hyperpar[["Theta2 for idx"]]),
+#      type="l", lwd=3, col="red", xlab=expression(kappa[1]), ylab="")
+# abline(v = asin(gamma1/.01), col = 'blue', lty=1, lwd = 2)
+# abline(v = quantile(inla.rmarginal(200, res$marginals.hyperpar[["Theta2 for idx"]]), prob = 0.025), lty = 2)
+# abline(v = quantile(inla.rmarginal(200, res$marginals.hyperpar[["Theta2 for idx"]]), prob = 0.975), lty = 2)
+# 
+# plot(inla.smarginal(res$marginals.hyperpar[["Theta3 for idx"]]),
+#      type="l", lwd=3, col="red", xlab=expression(kappa[2]), ylab="")
+# abline(v = asin(gamma2/.01), col = 'blue', lty=1, lwd = 2)
+# abline(v = quantile(inla.rmarginal(200, res$marginals.hyperpar[["Theta3 for idx"]]), prob = 0.025), lty = 2)
+# abline(v = quantile(inla.rmarginal(200, res$marginals.hyperpar[["Theta3 for idx"]]), prob = 0.975), lty = 2)
 
 
 
@@ -157,18 +159,37 @@ weights_ests_df <- data.frame(true = weights,
                               lag = 0:lag_k)
 
 weights_ests_df$lag <- factor(weights_ests_df$lag, levels=unique(weights_ests_df$lag))
+
+
+
+gamma1 = 0.002 # rapidly declining weights
+gamma2 = -.005
+
+# weights_func <- function(x){
+#   compile_weights <- c()
+#   for(i in 0:40){
+#     compile_weights <- c(compile_weights, exp((gamma1*(i^1)) + gamma2*(i^2))) 
+#   }
+#   compile_weights <- compile_weights/sum(compile_weights)
+#   return(compile_weights[x])
+# }
+
+png("/Users/stephenjunvillejo/Downloads/WeightsEstimates_expoAlmon.png", width=28, height=15, units = 'cm', res = 300)
 ggplot(weights_ests_df, aes(x=lag, y=mean)) + 
-  #geom_line() +
-  geom_point(aes(col="posterior mean")) +
-  #geom_point(color="red",aes(color = "posterior mean")) +
+  #geom_function(fun = weights_func, xlim = c(1, 40), color = "gray", n = 500) +
+  geom_point(aes(col="Posterior mean")) +
   geom_errorbar(aes(ymin=q2.5, ymax=q97.5), width=.2,
                 position=position_dodge(0.05), col = "black") + 
-  geom_point(aes(x=lag, y=true, color = "true value")) + 
-  #geom_point(aes(x=lag, y=true, color = "truth"), color = "blue") +
+  geom_point(aes(x=lag, y=true, color = "True value")) + 
   scale_color_manual(name='',
-                     breaks=c('posterior mean', 'true value'),
-                     values=c('posterior mean'='red', 'true value'='blue')) +
+                     breaks=c('Posterior mean', 'True value'),
+                     values=c('Posterior mean'='red', 'True value'='blue')) +
   theme_bw() + 
+  theme(axis.text=element_text(size=12),
+        axis.title=element_text(size=16,face="bold"),
+        legend.position = "bottom",
+        legend.text=element_text(size=20, face = "plain"),
+        legend.title=element_blank()) + 
   ylab("")
-
+dev.off()
 
