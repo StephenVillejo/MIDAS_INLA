@@ -24,8 +24,6 @@ for(lag in 0:lag_k){
 weights <- xi/sum(xi)
 plot(weights, type = "l")
 
-set.seed(125321) # good
-
 set.seed(120054)
 x <- rnorm(30*n) 
 y <- beta0 + trend*c(1:n) + beta1*mls(x,0:lag_k,30)%*%weights + rnorm(n, sd = sigma_e)
