@@ -39,15 +39,15 @@ autoplot(x_ts) + theme_bw()
 autoplot(y_ts) + theme_bw()
 
 
+
+#### Model fitting ####
+
 Midas_objects <- fit_Minla(xdata = x_ts,
                            ydata = y_ts,
                            constraint = "almon2",
                            K = 0:40,
                            m = 4,
                            lagY = 0) 
-head(Midas_objects$data)
-head(Midas_objects$X_matrix)
-which(complete.cases(Midas_objects$X_matrix) == FALSE)
 
 res = inla(y ~ 1 + f(idx, model = Midas_objects$rgen, n = nrow(Midas_objects$data)),
            data = data.frame(y = Midas_objects$data$y, 
@@ -61,8 +61,7 @@ summary(res)
 
 
 
-
-# observed versus predicted values (diff log scale)
+#### Compare observed versus predicted values ####
 
 pred_data <- Midas_objects$data
 pred_res <- predict_midas(model = res,
@@ -84,6 +83,8 @@ autoplot(both_ts) +
         legend.title=element_blank())
 dev.off()
 
+
+#### Plot posterior marginals ####
 
 png("/Users/stephenjunvillejo/Downloads/ParamEstimates_expoAlmon.png", width=20, height=10, units = 'cm', res = 300)
 par(mfrow=c(1,3))
@@ -127,6 +128,7 @@ dev.off()
 
 
 
+#### Compare true and estimated (lag) weights ####
 
 theta1_samples <- inla.rmarginal(200, res$marginals.hyperpar$`Theta2 for idx`)
 theta2_samples <- inla.rmarginal(200, res$marginals.hyperpar$`Theta3 for idx`)
@@ -161,19 +163,6 @@ weights_ests_df <- data.frame(true = weights,
 weights_ests_df$lag <- factor(weights_ests_df$lag, levels=unique(weights_ests_df$lag))
 
 
-
-gamma1 = 0.002 # rapidly declining weights
-gamma2 = -.005
-
-# weights_func <- function(x){
-#   compile_weights <- c()
-#   for(i in 0:40){
-#     compile_weights <- c(compile_weights, exp((gamma1*(i^1)) + gamma2*(i^2))) 
-#   }
-#   compile_weights <- compile_weights/sum(compile_weights)
-#   return(compile_weights[x])
-# }
-
 png("/Users/stephenjunvillejo/Downloads/WeightsEstimates_expoAlmon.png", width=28, height=15, units = 'cm', res = 300)
 ggplot(weights_ests_df, aes(x=lag, y=mean)) + 
   #geom_function(fun = weights_func, xlim = c(1, 40), color = "gray", n = 500) +
@@ -192,4 +181,15 @@ ggplot(weights_ests_df, aes(x=lag, y=mean)) +
         legend.title=element_blank()) + 
   ylab("")
 dev.off()
+
+# gamma1 = 0.002 
+# gamma2 = -.005
+# weights_func <- function(x){
+#   compile_weights <- c()
+#   for(i in 0:40){
+#     compile_weights <- c(compile_weights, exp((gamma1*(i^1)) + gamma2*(i^2))) 
+#   }
+#   compile_weights <- compile_weights/sum(compile_weights)
+#   return(compile_weights[x])
+# }
 
