@@ -38,7 +38,7 @@ png("/Users/stephenjunvillejo/Downloads/SimHighFrequency_expoAlmon.png", width=1
 autoplot(x_ts, color = "brown") + theme_bw() + geom_point(color = "red", size = .4) +
   theme(axis.text.x=element_text(size=16),
         axis.title.x=element_text(size=16,face="bold"),
-        axis.text.y=element_blank(),
+        axis.text.y=element_text(size=16),
         axis.title.y=element_blank(),
         legend.position = "bottom",
         legend.text=element_text(size=20, face = "plain"),
@@ -48,7 +48,7 @@ png("/Users/stephenjunvillejo/Downloads/SimLowFrequency_expoAlmon.png", width=17
 autoplot(y_ts, color = "black") + theme_bw() + geom_point(color = "gray", size = .4) +
   theme(axis.text.x=element_text(size=16),
         axis.title.x=element_text(size=16,face="bold"),
-        axis.text.y=element_blank(),
+        axis.text.y=element_text(size=16),
         axis.title.y=element_blank(),
         legend.position = "bottom",
         legend.text=element_text(size=20, face = "plain"),
